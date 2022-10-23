@@ -1,13 +1,10 @@
-from obfuscation import ShuffleBlock
-from Crypto.Util.number import bytes_to_long
+
 from Crypto.Cipher import AES
-from base64 import b64encode, b64decode
-import json
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from Crypto.Random import get_random_bytes
 from Crypto.Random.random import getrandbits
 from Crypto.Util.number import *
+from obfuscation import ShuffleBlock
 from compression import BWT, RunLength
 
 # Get Data
