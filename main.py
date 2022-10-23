@@ -1,3 +1,4 @@
+from obfuscation import ShuffleBlock
 from Crypto.Util.number import bytes_to_long
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
@@ -9,7 +10,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Random.random import getrandbits
 from Crypto.Util.number import *
-import compression
+from compression import BWT, RunLength
 
 # Get Data
 cut_length = 1_000
@@ -17,8 +18,8 @@ f = open("protein_sequences.fasta", "r")
 data = f.read()[:cut_length]
 
 # Compress
-bwt = compression.BWT()
-runlength = compression.RunLength()
+bwt = BWT()
+runlength = RunLength()
 
 seq_bwt = bwt.encode(data)
 seq_runlength = runlength.encode(seq_bwt)
@@ -44,16 +45,17 @@ public_key = rsa_key.publickey()
 cipher_rsa = PKCS1_OAEP.new(public_key)
 encrypted_key = cipher_rsa.encrypt(encryption_key_byte)
 
+shuffle_block = ShuffleBlock()
 # Shuffle
-block_size = int(math.sqrt(len(seq_runlength)))
-block_num = math.ceil(len(seq_runlength) / block_size)
-shuffle_seq = list(range(block_num))
-random.seed(nonce)
-random.shuffle(shuffle_seq)
-shuffled_seq = ""
-for i in shuffle_seq:
-  shuffled_seq += seq_runlength[i * block_size:(i + 1) * block_size]
-
+# block_size = int(math.sqrt(len(seq_runlength)))
+# block_num = math.ceil(len(seq_runlength) / block_size)
+# shuffle_seq = list(range(block_num))
+# random.seed(nonce)
+# random.shuffle(shuffle_seq)
+# shuffled_seq = ""
+# for i in shuffle_seq:
+#   shuffled_seq += seq_runlength[i * block_size:(i + 1) * block_size]
+shuffled_seq = shuffle_block.encode(seq_runlength, nonce)
 
 # AES-GCM
 
@@ -100,7 +102,7 @@ uns_block_size = int(math.sqrt(tlen))
 uns_block_num = math.ceil(tlen / uns_block_size)
 last_block = (tlen - 1) % uns_block_size + 1
 
-unshuffle_index = list(range(block_num))
+unshuffle_index = list(range(uns_block_num))
 
 random.seed(nonce)
 random.shuffle(unshuffle_index)
