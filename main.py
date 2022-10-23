@@ -3,8 +3,6 @@ from Crypto.Util.number import bytes_to_long
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
 import json
-import math
-import random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -45,17 +43,9 @@ public_key = rsa_key.publickey()
 cipher_rsa = PKCS1_OAEP.new(public_key)
 encrypted_key = cipher_rsa.encrypt(encryption_key_byte)
 
-shuffle_block = ShuffleBlock()
 # Shuffle
-# block_size = int(math.sqrt(len(seq_runlength)))
-# block_num = math.ceil(len(seq_runlength) / block_size)
-# shuffle_seq = list(range(block_num))
-# random.seed(nonce)
-# random.shuffle(shuffle_seq)
-# shuffled_seq = ""
-# for i in shuffle_seq:
-#   shuffled_seq += seq_runlength[i * block_size:(i + 1) * block_size]
-shuffled_seq = shuffle_block.encode(seq_runlength, nonce)
+shuffle_block = ShuffleBlock(nonce)
+shuffled_seq = shuffle_block.encode(seq_runlength)
 
 # AES-GCM
 
@@ -96,32 +86,7 @@ except (ValueError, KeyError):
 
 # Decode Shuffle
 
-tlen = len(plaintext)
-
-uns_block_size = int(math.sqrt(tlen))
-uns_block_num = math.ceil(tlen / uns_block_size)
-last_block = (tlen - 1) % uns_block_size + 1
-
-unshuffle_index = list(range(uns_block_num))
-
-random.seed(nonce)
-random.shuffle(unshuffle_index)
-
-index_dict = dict()
-st = 0
-
-for i in unshuffle_index:
-  size = uns_block_size
-  if i == uns_block_num - 1:
-    size = last_block
-  index_dict[i] = (st, st + size)
-  st += size
-
-unshuffled_seq = ""
-for i in range(len(unshuffle_index)):
-  st, ed = index_dict[i]
-  unshuffled_seq += plaintext[st:ed]
-
+unshuffled_seq = shuffle_block.decode(plaintext)
 if unshuffled_seq == seq_runlength:
   print("Decode Shuffle OK")
 else:
