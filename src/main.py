@@ -10,7 +10,7 @@ from compression import BWT, Compress, RunLength
 # Get Data
 cut_length = 1_000
 f = open("sequences.fna", "r")
-data = f.read()
+data = f.read().strip()
 
 print("Original Data Length: ", len(data))
 

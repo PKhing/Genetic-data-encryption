@@ -92,8 +92,9 @@ class DnaRunLength():
       'T': 1,
       'C': 2,
       'G': 3,
-      chr(0): 4,
-      chr(1): 5,
+      'N': 4,
+      chr(0): 5,
+      chr(1): 6,
   }
   inv = {v: k for k, v in mp.items()}
 
@@ -111,7 +112,6 @@ class DnaRunLength():
         count = 0
       else:
         count += 1
-    print(ofcnt)
     result.append(chr(self.mp[current] << 5 | count))
     return ''.join(result)
 
@@ -128,6 +128,8 @@ class SplitPart():
     Dna = []
     Label = []
     for line in s.split('\n'):
+      if line == '':
+        continue
       if line[0] == '>':
         Label.append(line)
         Dna.append("")
@@ -143,7 +145,11 @@ class SplitPart():
     result = []
     for i in range(len(Label)):
       result.append(Label[i])
-      result.append(Dna[i])
+
+      # Add \n to every 80 characters in Dna
+      for j in range(0, len(Dna[i]), 80):
+        result.append(Dna[i][j:j + 80])
+        
     return '\n'.join(result)
 
 
@@ -164,13 +170,12 @@ class Compress():
 
     last_bit = []
     length = len(encodeLabel)
-    for i in range(12):
+    for _ in range(12):
         last_bit.append(length % 256)
         length //= 256
     last_bit = last_bit[::-1]
 
     encodedResult = encodeLabel + encodeDna + "".join([chr(i) for i in last_bit])
-
     return encodedResult
 
   def decode(self, data):
