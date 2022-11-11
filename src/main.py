@@ -34,7 +34,7 @@ encryption_key = getrandbits(bit_key_size)
 encryption_key_byte = long_to_bytes(encryption_key, blocksize=32)
 
 nonce = getrandbits(initial_vector_size)
-nonce_byte = long_to_bytes(nonce)
+nonce_byte = long_to_bytes(nonce, blocksize=12)
 
 # Generate RSA Pair Keys
 rsa_key = RSA.generate(2048)
@@ -100,7 +100,7 @@ decoded = compress.decode(unshuffled_seq)
 # seq_de_runlength = runlength.decode(unshuffled_seq)
 # seq_de_bwt = bwt.decode(seq_de_runlength)
 
-if decoded == data:
+if decoded.replace('\n', '') == data.replace('\n', ''):
     print("Decode OK")
     
     diff = len(data) - len(encrypted_result)
