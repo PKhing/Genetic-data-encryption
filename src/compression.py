@@ -162,9 +162,26 @@ class Compress():
     encodeLabel = self.bwt.encode(Label)
     encodeLabel = self.runlength.encode(encodeLabel)
 
-    return [encodeDna, encodeLabel]
+    last_bit = []
+    length = len(encodeLabel)
+    for i in range(12):
+        last_bit.append(length % 256)
+        length //= 256
+    last_bit = last_bit[::-1]
 
-  def decode(self, Dna, Label):
+    encodedResult = encodeLabel + encodeDna + "".join([chr(i) for i in last_bit])
+
+    return encodedResult
+
+  def decode(self, data):
+    label_size = data[-12:]
+    label_size = [ord(i) for i in label_size][::-1]
+    now = 0
+    for i in range(12):
+        now += label_size[i] * (256 ** i)
+
+    Label = data[:now]
+    Dna = data[now:-12]
 
     Dna = self.dnarunlength.decode(Dna)
     Dna = self.bwt.decode(Dna)
