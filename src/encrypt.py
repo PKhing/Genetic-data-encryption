@@ -1,3 +1,5 @@
+import sys
+
 from Crypto.Random.random import getrandbits
 from Crypto.Util.number import *
 from Crypto.Cipher import AES
@@ -6,7 +8,15 @@ from lib.compression import *
 from lib.obfuscation import *
 
 if __name__ == "__main__":
-    f = open("GCA_000398605.1_ASM39860v1_genomic.fna", "r")
+    if len(sys.argv) < 3:
+        print("Usage: python encrypt.py <input_file> <encryption_key_file> <output_file>")
+        exit(1)
+    
+    input_file = sys.argv[1]
+    encryption_key_file = sys.argv[2]
+    output_file = sys.argv[3]
+
+    f = open(input_file, "r")
     data = f.read().strip()
 
     initial_vector_size = 96
@@ -22,7 +32,7 @@ if __name__ == "__main__":
 
     encoded_data = shuffled_seq.encode('ISO-8859-1')
 
-    fp = open('encryption_key.pem', 'rb')
+    fp = open(encryption_key_file, 'rb')
     key = fp.read()
 
     print(
@@ -34,6 +44,6 @@ if __name__ == "__main__":
     encrypted_result = nonce_byte + ciphertext + tag
     print(f"final result length: {len(encrypted_result)}")
 
-    f = open('result.encrypted', 'wb')
+    f = open(output_file, 'wb')
     f.write(encrypted_result)
     f.close()
