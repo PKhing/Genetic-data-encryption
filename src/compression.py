@@ -92,8 +92,13 @@ class DnaRunLength():
       'T': 1,
       'C': 2,
       'G': 3,
-      chr(0): 4,
-      chr(1): 5,
+      'N': 4,
+      'a': 5,
+      't': 6,
+      'c': 7,
+      'g': 8,
+      chr(0): 9,
+      chr(1): 10,
   }
   inv = {v: k for k, v in mp.items()}
 
@@ -103,23 +108,22 @@ class DnaRunLength():
     count = 0
     result = []
     for i in range(1, len(s)):
-      if s[i] != current or count == 31:
-        if count == 31:
+      if s[i] != current or count == 15:
+        if count == 15:
           ofcnt += 1
-        result.append(chr(self.mp[current] << 5 | count))
+        result.append(chr(self.mp[current] << 4 | count))
         current = s[i]
         count = 0
       else:
         count += 1
-    print(ofcnt)
-    result.append(chr(self.mp[current] << 5 | count))
+    result.append(chr(self.mp[current] << 4 | count))
     return ''.join(result)
 
   def decode(self, s):
     result = []
     for i in s:
-      char = ord(i) >> 5
-      count = ord(i) & 31
+      char = ord(i) >> 4
+      count = ord(i) & 15
       result.append((count + 1) * self.inv[char])
     return ''.join(result)
 
@@ -128,6 +132,8 @@ class SplitPart():
     Dna = []
     Label = []
     for line in s.split('\n'):
+      if line == '':
+        continue
       if line[0] == '>':
         Label.append(line)
         Dna.append("")
@@ -143,7 +149,11 @@ class SplitPart():
     result = []
     for i in range(len(Label)):
       result.append(Label[i])
-      result.append(Dna[i])
+
+      # Add \n to every 80 characters in Dna
+      for j in range(0, len(Dna[i]), 80):
+        result.append(Dna[i][j:j + 80])
+        
     return '\n'.join(result)
 
 
@@ -162,9 +172,25 @@ class Compress():
     encodeLabel = self.bwt.encode(Label)
     encodeLabel = self.runlength.encode(encodeLabel)
 
-    return [encodeDna, encodeLabel]
+    last_bit = []
+    length = len(encodeLabel)
+    for _ in range(12):
+        last_bit.append(length % 256)
+        length //= 256
+    last_bit = last_bit[::-1]
 
-  def decode(self, Dna, Label):
+    encodedResult = encodeLabel + encodeDna + "".join([chr(i) for i in last_bit])
+    return encodedResult
+
+  def decode(self, data):
+    label_size = data[-12:]
+    label_size = [ord(i) for i in label_size][::-1]
+    now = 0
+    for i in range(12):
+        now += label_size[i] * (256 ** i)
+
+    Label = data[:now]
+    Dna = data[now:-12]
 
     Dna = self.dnarunlength.decode(Dna)
     Dna = self.bwt.decode(Dna)
