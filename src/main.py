@@ -8,19 +8,12 @@ from obfuscation import ShuffleBlock
 from compression import BWT, Compress, RunLength
 
 # Get Data
-cut_length = 1_000
 f = open("sequences.fna", "r")
 data = f.read().strip()
 
 print("Original Data Length: ", len(data))
 
-# Compress
-# bwt = BWT()
-# runlength = RunLength()
-
-# seq_bwt = bwt.encode(data)
-# seq_runlength = runlength.encode(seq_bwt)
-
+# Compression
 compress = Compress()
 seq_runlength = compress.encode(data)
 
@@ -70,41 +63,34 @@ f.close()
 
 # Decryption
 try:
-    tag = encrypted_result[-16:]
-    iv = encrypted_result[:12]
-    ciphertext = encrypted_result[12:len(encrypted_result) - 16]
+  tag = encrypted_result[-16:]
+  iv = encrypted_result[:12]
+  ciphertext = encrypted_result[12:len(encrypted_result) - 16]
 
-    priv_key = RSA.import_key(private_key)
-    decrypt_rsa = PKCS1_OAEP.new(priv_key)
-    key = decrypt_rsa.decrypt(encrypted_key)
+  priv_key = RSA.import_key(private_key)
+  decrypt_rsa = PKCS1_OAEP.new(priv_key)
+  key = decrypt_rsa.decrypt(encrypted_key)
 
-    cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
+  cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
 
-    plaintext = cipher.decrypt_and_verify(ciphertext, tag).decode('ISO-8859-1')
-    # print("The message was: " + str(plaintext))
+  plaintext = cipher.decrypt_and_verify(ciphertext, tag).decode('ISO-8859-1')
 except (ValueError, KeyError):
-    print("Incorrect decryption")
+  print("Incorrect decryption")
 
 
 # Decode Shuffle
 
 unshuffled_seq = shuffle_block.decode(plaintext)
 if unshuffled_seq == seq_runlength:
-    print("Decode Shuffle OK")
+  print("Decode Shuffle OK")
 else:
-    print("Unshuffle not OK")
+  print("Unshuffle not OK")
 
 # Decompress
 decoded = compress.decode(unshuffled_seq)
 
-# seq_de_runlength = runlength.decode(unshuffled_seq)
-# seq_de_bwt = bwt.decode(seq_de_runlength)
-
 if decoded.replace('\n', '') == data.replace('\n', ''):
-    print("Decode OK")
-    
-    diff = len(data) - len(encrypted_result)
-    print(f"Compression Performace: {diff * 100 / len(data)}")
+  print("Decode OK")
 
-# if seq_de_bwt == data:
-#     print("Decode BWT OK")
+  diff = len(data) - len(encrypted_result)
+  print(f"Compression Performace: {diff * 100 / len(data)}")

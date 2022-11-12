@@ -139,7 +139,6 @@ class DnaRunLength():
         count = 0
       else:
         count += 1
-    # print(ofcnt)
     result.append(chr(mp[current] << cntbit | count))
     return ''.join(result)
 
