@@ -93,8 +93,12 @@ class DnaRunLength():
       'C': 2,
       'G': 3,
       'N': 4,
-      chr(0): 5,
-      chr(1): 6,
+      'a': 5,
+      't': 6,
+      'c': 7,
+      'g': 8,
+      chr(0): 9,
+      chr(1): 10,
   }
   inv = {v: k for k, v in mp.items()}
 
@@ -104,22 +108,22 @@ class DnaRunLength():
     count = 0
     result = []
     for i in range(1, len(s)):
-      if s[i] != current or count == 31:
-        if count == 31:
+      if s[i] != current or count == 15:
+        if count == 15:
           ofcnt += 1
-        result.append(chr(self.mp[current] << 5 | count))
+        result.append(chr(self.mp[current] << 4 | count))
         current = s[i]
         count = 0
       else:
         count += 1
-    result.append(chr(self.mp[current] << 5 | count))
+    result.append(chr(self.mp[current] << 4 | count))
     return ''.join(result)
 
   def decode(self, s):
     result = []
     for i in s:
-      char = ord(i) >> 5
-      count = ord(i) & 31
+      char = ord(i) >> 4
+      count = ord(i) & 15
       result.append((count + 1) * self.inv[char])
     return ''.join(result)
 
